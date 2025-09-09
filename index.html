@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>5-Year Forecast</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; background: #f9f9f9; }
+    h1 { color: #333; }
+    input, button { padding: 0.5rem; margin: 0.3rem; }
+    #forecast-output { white-space: pre-wrap; background: #fff; padding: 1rem; margin-top: 1rem; border: 1px solid #ccc; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>5-Year Forecast Tool</h1>
+  <label>Country: <input type="text" id="country" placeholder="e.g. Nigeria"></label><br>
+  <label>Operator: <input type="text" id="operator" placeholder="e.g. Airtel"></label><br>
+  <button onclick="getForecast()">Get Forecast</button>
+
+  <div id="forecast-output"></div>
+
+  <script>
+    async function getForecast() {
+      const country = document.getElementById('country').value;
+      const operator = document.getElementById('operator').value;
+      const output = document.getElementById('forecast-output');
+      output.textContent = 'Loading...';
+
+      try {
+        const response = await fetch('http://localhost:5000/forecast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country, operator, steps: 20 })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          output.textContent = 'Error: ' + (error.error || response.statusText);
+          return;
+        }
+
+        const data = await response.json();
+        let result = 'Forecasted Values (Next 5 Years):\n\n';
+        data.periods.forEach((period, index) => {
+          result += `${period}: ${data.forecast[index].toFixed(2)}\n`;
+        });
+        output.textContent = result;
+      } catch (err) {
+        output.textContent = 'Error: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
